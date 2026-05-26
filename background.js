@@ -171,8 +171,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
           proj.startTabId = activeTab?.id;
           proj.startUrl = activeTab?.url;
-          if (activeTab?.id) {
-            try { await chrome.tabs.sendMessage(activeTab.id, { type: 'RECORDING_STARTED' }); } catch (e) {}
+          // Broadcast to ALL open tabs so any already-loaded content script wakes up immediately
+          const allTabs = await chrome.tabs.query({});
+          for (const t of allTabs) {
+            try { await chrome.tabs.sendMessage(t.id, { type: 'RECORDING_STARTED' }); } catch (e) {}
           }
           sendResponse({ ok: true, projectId: proj.id });
           break;
