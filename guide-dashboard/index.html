@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Walkthrough Guide Dashboard</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Walkthrough Dashboard</h1>
+    <p>Upload ZIP exports → get shareable URLs and iframe embed codes</p>
+  </div>
+</header>
+
+<main>
+
+  <!-- Drop zone -->
+  <div class="upload-zone" id="upload-zone">
+    <input type="file" id="file-input" accept=".zip" />
+    <div class="upload-icon">📦</div>
+    <h2>Drop a walkthrough ZIP here</h2>
+    <p>Or click to browse · Exported from the Walkthrough Recorder Chrome extension</p>
+  </div>
+
+  <!-- Upload form (shown after file is chosen) -->
+  <div class="upload-form" id="upload-form">
+    <div id="file-badge" class="file-badge"></div>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="guide-title">Title</label>
+        <input type="text" id="guide-title" placeholder="e.g. Pantry Onboarding Demo" />
+      </div>
+      <div class="form-group">
+        <label for="guide-slug">URL slug</label>
+        <input type="text" id="guide-slug" placeholder="e.g. pantry-onboarding" />
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:16px;">
+      <label for="guide-desc">Description (optional)</label>
+      <input type="text" id="guide-desc" placeholder="Short description shown in the guide list" />
+    </div>
+    <div id="upload-progress">
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progress-fill" style="width:0%"></div></div>
+      <div class="progress-label" id="progress-label">Uploading…</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" id="cancel-upload">Cancel</button>
+      <button class="btn btn-primary" id="submit-upload">Publish Guide</button>
+    </div>
+  </div>
+
+  <!-- Guide list -->
+  <div class="section-title">
+    <span>Published Guides</span>
+    <button class="btn btn-secondary" id="refresh-btn" style="padding:5px 12px;font-size:12px;">Refresh</button>
+  </div>
+  <div class="guide-grid" id="guide-grid">
+    <div class="loading" id="guides-loading">Loading guides…</div>
+  </div>
+
+</main>
+
+<!-- Embed code popup -->
+<div class="embed-popup" id="embed-popup">
+  <div class="embed-box">
+    <h2>Embed this guide</h2>
+    <p>Copy the iframe code below and paste it into your Framer / website page.</p>
+    <div class="embed-code" id="embed-code-text" title="Click to copy"></div>
+    <div class="embed-actions">
+      <button class="btn btn-secondary" id="embed-close">Close</button>
+      <button class="btn btn-primary" id="embed-copy">Copy Code</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>

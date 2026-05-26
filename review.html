@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Review Walkthrough</title>
+<link rel="stylesheet" href="review.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-left">
+      <button class="btn secondary btn-sm" id="project-menu-btn" title="Switch project">☰ Projects</button>
+      <div class="project-dropdown" id="project-dropdown" style="display:none;"></div>
+      <input type="text" id="project-name" class="project-name" placeholder="Walkthrough name" />
+      <span class="step-summary" id="step-summary">0 steps</span>
+    </div>
+    <div class="topbar-center">
+      <div class="viewport-toggle" id="viewport-toggle">
+        <button class="vp-btn active" data-vp="desktop" title="Desktop preview">▭ Desktop</button>
+        <button class="vp-btn" data-vp="mobile" title="Mobile preview">▯ Mobile</button>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div id="autosave-pill" class="autosave-pill saved">Saved</div>
+      <button class="btn secondary" id="intro-btn" title="Configure intro slide">▶ Intro</button>
+      <button class="btn secondary" id="brand-btn" title="Brand presets">🎨 Brand</button>
+      <button class="btn secondary" id="cta-btn" title="Persistent CTA on every step">→ CTA</button>
+      <button class="btn secondary" id="deploys-btn" title="Deployment history">📦 Deploys</button>
+      <button class="btn secondary" id="add-step-btn">+ Add Step</button>
+      <button class="btn secondary" id="preview-btn">Preview</button>
+      <button class="btn primary" id="export-btn">Export ZIP</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside class="sidebar" id="step-list">
+      <!-- step thumbnails populated here -->
+    </aside>
+
+    <section class="editor" id="editor">
+      <div class="empty-state" id="empty-state">
+        <h2>No steps yet</h2>
+        <p>Start a recording from the extension popup, click around your app, then return here to review.</p>
+      </div>
+
+      <div class="editor-content" id="editor-content" style="display:none;">
+        <div class="canvas-wrap" id="canvas-wrap">
+          <div class="canvas" id="canvas">
+            <img class="canvas-image" id="canvas-image" alt="step screenshot" />
+            <div class="hotspot" id="hotspot" title="Drag to reposition click target">
+              <div class="hotspot-pulse"></div>
+              <div class="hotspot-dot"></div>
+            </div>
+            <div class="tooltip-preview" id="tooltip-preview">
+              <div class="tooltip-title" id="tt-title-preview">Click here</div>
+              <div class="tooltip-body" id="tt-body-preview">Tooltip text appears here</div>
+              <div class="tooltip-drag-handle" id="tooltip-drag-handle" title="Drag to reposition tooltip">⋮⋮</div>
+              <div class="tooltip-resize-handle" id="tooltip-resize-handle" title="Drag to resize tooltip"></div>
+            </div>
+            <div class="annotation-host" id="annotation-host"></div>
+          </div>
+
+          <div class="canvas-tools" id="canvas-tools">
+            <button class="tool-btn active" data-tool="select" title="Select / move (V)">↖</button>
+            <button class="tool-btn" data-tool="arrow" title="Arrow (A)">↗</button>
+            <button class="tool-btn" data-tool="rect" title="Rectangle (R)">▭</button>
+            <button class="tool-btn" data-tool="text" title="Text (T)">T</button>
+            <button class="tool-btn" data-tool="blur" title="Blur (B)">▓</button>
+            <button class="tool-btn" data-tool="spotlight" title="Spotlight - inverted blur (S)">◉</button>
+            <button class="tool-btn" data-tool="zoom" title="Zoom viewport (Z)">🔍</button>
+            <div class="tool-divider"></div>
+            <button class="tool-btn" id="undo-btn" title="Undo (Ctrl+Z)">↶</button>
+            <button class="tool-btn" id="redo-btn" title="Redo (Ctrl+Shift+Z)">↷</button>
+            <div class="tool-divider"></div>
+            <button class="tool-btn" id="reset-tooltip-btn" title="Reset tooltip to auto position">⤤</button>
+            <button class="tool-btn danger" id="delete-step-btn" title="Delete step">🗑</button>
+          </div>
+        </div>
+
+        <div class="inspector" id="inspector">
+          <div class="inspector-section">
+            <label class="lbl">Step</label>
+            <div class="step-nav">
+              <button class="btn-tiny" id="prev-step">← Prev</button>
+              <span class="step-pos" id="step-pos">1 / 1</span>
+              <button class="btn-tiny" id="next-step">Next →</button>
+            </div>
+            <button class="btn-tiny full" id="preview-step-btn">▶ Preview from this step</button>
+            <button class="btn-tiny full" id="duplicate-step-btn">⎘ Duplicate step</button>
+          </div>
+
+          <div class="inspector-section ann-inspector" id="ann-inspector" style="display:none;">
+            <label class="lbl">Annotation: <span id="ann-type-label"></span></label>
+            <div class="ann-controls" id="ann-controls"></div>
+            <div class="row">
+              <button class="btn-tiny" id="ann-delete">Delete</button>
+              <button class="btn-tiny" id="ann-deselect">Done</button>
+            </div>
+          </div>
+
+          <div class="inspector-section step-inspector" id="step-inspector">
+            <label class="lbl" for="tt-title">Tooltip title</label>
+            <input type="text" id="tt-title" class="inp" placeholder="e.g. Open the dashboard" />
+          </div>
+
+          <div class="inspector-section step-inspector">
+            <label class="lbl" for="tt-body">Tooltip body</label>
+            <textarea id="tt-body" class="inp" rows="4" placeholder="What does the user do here?"></textarea>
+          </div>
+
+          <div class="inspector-section step-inspector">
+            <label class="lbl">Tooltip position</label>
+            <div class="seg">
+              <button class="seg-btn" data-pos="top">Top</button>
+              <button class="seg-btn" data-pos="bottom">Bottom</button>
+              <button class="seg-btn" data-pos="left">Left</button>
+              <button class="seg-btn" data-pos="right">Right</button>
+            </div>
+            <p class="hint">Or drag the tooltip's handle to free-position it.</p>
+          </div>
+
+          <div class="inspector-section step-inspector">
+            <label class="lbl">Captured info</label>
+            <div class="meta">
+              <div><span>Page:</span> <code id="meta-url"></code></div>
+              <div><span>Element:</span> <code id="meta-target"></code></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Inline text editor -->
+  <div class="text-editor-popup" id="text-editor-popup" style="display:none;">
+    <textarea id="text-editor-input" placeholder="Type text..."></textarea>
+    <div class="text-editor-actions">
+      <button class="btn-tiny" id="text-editor-cancel">Cancel</button>
+      <button class="btn-tiny primary" id="text-editor-commit">Add</button>
+    </div>
+  </div>
+
+  <!-- Intro slide modal -->
+  <div class="modal" id="intro-modal" style="display:none;">
+    <div class="modal-content">
+      <h2>Intro slide</h2>
+      <p>This is the first thing viewers see. Step 0 — auto-generated using your project name and brand colors.</p>
+
+      <label class="checkbox-row">
+        <input type="checkbox" id="intro-enabled" checked />
+        <span>Show intro slide before step 1</span>
+      </label>
+
+      <div class="field">
+        <label class="lbl" for="intro-title">Title</label>
+        <input type="text" id="intro-title" class="inp" placeholder="(Defaults to project name)" />
+      </div>
+
+      <div class="field">
+        <label class="lbl" for="intro-subtitle">Subtitle (optional)</label>
+        <input type="text" id="intro-subtitle" class="inp" placeholder="e.g. A quick tour of how it works" />
+      </div>
+
+      <div class="field">
+        <label class="lbl" for="intro-button-text">Button text</label>
+        <input type="text" id="intro-button-text" class="inp" placeholder="Start Demo" />
+      </div>
+
+      <p class="hint">The background uses your first captured screenshot, darkened. Brand preset colors apply automatically.</p>
+
+      <div class="modal-actions">
+        <button class="btn secondary" id="intro-cancel">Cancel</button>
+        <button class="btn primary" id="intro-save">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Brand preset modal (v2.2 - palette-based) -->
+  <div class="modal" id="brand-modal" style="display:none;">
+    <div class="modal-content wide">
+      <h2>Brand Presets</h2>
+      <p>Save reusable brand color palettes. Each preset stores 3 primary + 3 secondary colors that apply across tooltips, CTAs, and all UI.</p>
+
+      <h3>Saved Presets</h3>
+      <div class="preset-list" id="preset-list"></div>
+
+      <div class="divider"></div>
+
+      <h3 id="preset-editor-heading">Create new preset</h3>
+      <div class="field">
+        <label class="lbl" for="preset-name">Preset name</label>
+        <input type="text" id="preset-name" class="inp" placeholder="e.g. OneVibeMedia" />
+      </div>
+
+      <div class="field">
+        <label class="lbl">Theme</label>
+        <select id="preset-theme" class="inp">
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select>
+      </div>
+
+      <h4 class="palette-heading">Primary colors</h4>
+      <div class="palette-grid">
+        <div class="palette-swatch">
+          <input type="color" data-palette="primary1" value="#6366f1" />
+          <input type="text" class="inp hex-input" data-hex="primary1" value="#6366f1" />
+          <span class="palette-role">Tooltip / Hotspot</span>
+        </div>
+        <div class="palette-swatch">
+          <input type="color" data-palette="primary2" value="#1A1348" />
+          <input type="text" class="inp hex-input" data-hex="primary2" value="#1A1348" />
+          <span class="palette-role">Persistent CTA</span>
+        </div>
+        <div class="palette-swatch">
+          <input type="color" data-palette="primary3" value="#4f46e5" />
+          <input type="text" class="inp hex-input" data-hex="primary3" value="#4f46e5" />
+          <span class="palette-role">Intro Button</span>
+        </div>
+      </div>
+
+      <h4 class="palette-heading">Secondary colors</h4>
+      <div class="palette-grid">
+        <div class="palette-swatch">
+          <input type="color" data-palette="secondary1" value="#FFFFFF" />
+          <input type="text" class="inp hex-input" data-hex="secondary1" value="#FFFFFF" />
+          <span class="palette-role">Tooltip Text</span>
+        </div>
+        <div class="palette-swatch">
+          <input type="color" data-palette="secondary2" value="#818cf8" />
+          <input type="text" class="inp hex-input" data-hex="secondary2" value="#818cf8" />
+          <span class="palette-role">Hover / Highlight</span>
+        </div>
+        <div class="palette-swatch">
+          <input type="color" data-palette="secondary3" value="#374151" />
+          <input type="text" class="inp hex-input" data-hex="secondary3" value="#374151" />
+          <span class="palette-role">Frame Accent</span>
+        </div>
+      </div>
+
+      <h4 class="palette-heading">Tooltip style</h4>
+      <div class="seg" id="tooltip-style-seg">
+        <button class="seg-btn active" data-tt-style="colored">Colored</button>
+        <button class="seg-btn" data-tt-style="light">Light</button>
+        <button class="seg-btn" data-tt-style="dark">Dark</button>
+      </div>
+      <p class="hint">"Colored" uses primary1 as background with secondary1 as text (Storylane-style). Light/Dark use a neutral card.</p>
+
+      <div class="modal-actions">
+        <button class="btn secondary" id="brand-close">Close</button>
+        <button class="btn secondary" id="preset-clear-form">Clear form</button>
+        <button class="btn primary" id="preset-save">Save Preset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Persistent CTA modal (every-step CTA) -->
+  <div class="modal" id="cta-modal" style="display:none;">
+    <div class="modal-content">
+      <h2>Persistent CTA Button</h2>
+      <p>A floating CTA button that appears on every step of the demo — perfect for "Talk to Sales" or "Book a demo".</p>
+
+      <label class="checkbox-row">
+        <input type="checkbox" id="pcta-enabled" />
+        <span>Enable persistent CTA</span>
+      </label>
+
+      <div class="field-row">
+        <div class="field">
+          <label class="lbl" for="pcta-emoji">Emoji</label>
+          <input type="text" id="pcta-emoji" class="inp" placeholder="👉" maxlength="4" />
+        </div>
+        <div class="field" style="grid-column: span 2;">
+          <label class="lbl" for="pcta-text">Button text</label>
+          <input type="text" id="pcta-text" class="inp" placeholder="Talk to Sales" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="lbl" for="pcta-url">URL</label>
+        <input type="text" id="pcta-url" class="inp" placeholder="https://..." />
+      </div>
+
+      <div class="field">
+        <label class="lbl">Position</label>
+        <div class="seg seg-4">
+          <button class="seg-btn" data-pcta-pos="top-left">Top Left</button>
+          <button class="seg-btn" data-pcta-pos="top-right">Top Right</button>
+          <button class="seg-btn active" data-pcta-pos="bottom-left">Bottom Left</button>
+          <button class="seg-btn active" data-pcta-pos="bottom-right">Bottom Right</button>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label class="lbl" for="pcta-bg">Background color</label>
+          <input type="color" id="pcta-bg" value="#1A1348" />
+        </div>
+        <div class="field">
+          <label class="lbl" for="pcta-text-color">Text color</label>
+          <input type="color" id="pcta-text-color" value="#FFFFFF" />
+        </div>
+      </div>
+
+      <p class="hint">Tip: Apply a brand preset to auto-fill these colors from your palette.</p>
+
+      <label class="checkbox-row">
+        <input type="checkbox" id="pcta-new-window" checked />
+        <span>Open in new window</span>
+      </label>
+
+      <div class="modal-actions">
+        <button class="btn secondary" id="pcta-cancel">Cancel</button>
+        <button class="btn primary" id="pcta-save">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Final-screen CTA (existing from v2) - now relocated to a smaller modal accessible via Intro modal -->
+  <!-- Actually we'll fold this into Intro modal as "completion screen CTA" later if needed -->
+
+  <!-- Export modal -->
+  <div class="modal" id="export-modal" style="display:none;">
+    <div class="modal-content">
+      <h2>Export Walkthrough</h2>
+      <p>Your walkthrough will be packaged as a ZIP for Netlify deployment.</p>
+
+      <div class="field">
+        <label class="lbl">Apply preset</label>
+        <select id="exp-preset" class="inp">
+          <option value="">-- None (use defaults) --</option>
+        </select>
+      </div>
+
+      <p class="hint">Brand preset colors apply across tooltips, CTAs, intro slide, and progress bar.</p>
+
+      <div class="modal-actions">
+        <button class="btn secondary" id="cancel-export">Cancel</button>
+        <button class="btn primary" id="confirm-export">Download ZIP</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Deployments modal -->
+  <div class="modal" id="deployments-modal" style="display:none;">
+    <div class="modal-content">
+      <h2>📦 Deployment History</h2>
+      <p>Track where this walkthrough has been published. Paste the URL after deploying via the guide dashboard.</p>
+
+      <div id="deployments-list"></div>
+
+      <div class="divider"></div>
+
+      <h3>Add deployment</h3>
+      <div class="field">
+        <label class="lbl" for="dep-url">URL</label>
+        <input type="text" id="dep-url" class="inp" placeholder="https://your-site.netlify.app/guides/my-guide" />
+      </div>
+      <div class="field">
+        <label class="lbl" for="dep-note">Note (optional)</label>
+        <input type="text" id="dep-note" class="inp" placeholder="e.g. v1 launch, client review..." />
+      </div>
+      <div class="modal-actions">
+        <button class="btn secondary" id="dep-close">Close</button>
+        <button class="btn primary" id="dep-add">Add Deployment</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="lib/jszip.min.js"></script>
+  <script src="review.js"></script>
+</body>
+</html>

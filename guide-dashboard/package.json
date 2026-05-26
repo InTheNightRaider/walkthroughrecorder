@@ -1,0 +1,12 @@
+{
+  "name": "walkthrough-guide-dashboard",
+  "version": "1.0.0",
+  "description": "Hosts and serves Walkthrough Recorder ZIP exports via Netlify Blobs",
+  "type": "module",
+  "engines": { "node": ">=18" },
+  "dependencies": {
+    "@netlify/blobs": "^8.0.0",
+    "jszip": "^3.10.1",
+    "lambda-multipart-parser": "^0.1.3"
+  }
+}
