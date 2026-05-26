@@ -205,7 +205,14 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           if (!proj) { sendResponse({ ok: false, reason: 'no active project' }); return; }
           try {
             const tab = sender.tab;
-            const dataUrl = await chrome.tabs.captureVisibleTab(tab.windowId, { format: 'png' });
+            // captureTab captures the specific tab regardless of which tab is active.
+            // captureVisibleTab captures whatever is currently active — if focus shifted
+            // during the async gap (e.g. a notification, alt-tab), it would capture
+            // the wrong tab and the hotspot would land in the wrong place.
+            const captureTabFn = chrome.tabs.captureTab;
+            const dataUrl = captureTabFn
+              ? await chrome.tabs.captureTab(tab.id, { format: 'png' })
+              : await chrome.tabs.captureVisibleTab(tab.windowId, { format: 'png' });
             const { clientX, clientY, viewportW, viewportH } = msg;
             const clickX = viewportW > 0 ? Math.max(0, Math.min(100, (clientX / viewportW) * 100)) : 50;
             const clickY = viewportH > 0 ? Math.max(0, Math.min(100, (clientY / viewportH) * 100)) : 50;

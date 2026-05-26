@@ -167,21 +167,18 @@ function handleSubframeClick(e, data) {
 }
 
 function forwardClickToBackground(payload) {
-  // Hide indicator so it doesn't appear in the screenshot, force reflow
+  // Hide indicator immediately and force the compositor to see the change
+  // before we request the screenshot. We do NOT wait rAFs because SPA pages
+  // react to clicks within a single frame (routing, modals, scroll) — any
+  // delay shifts the screenshot to a different page state while the click
+  // coordinates still reference the pre-click layout.
   if (recordingIndicator) {
     recordingIndicator.style.visibility = 'hidden';
-    void recordingIndicator.offsetHeight;
+    void recordingIndicator.offsetHeight; // force reflow
   }
-
-  // Two rAFs: first lets click-feedback paint, second flushes to compositor
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      chrome.runtime.sendMessage({ type: 'CAPTURE_CLICK', ...payload }, (res) => {
-        // Restore indicator after Chrome has taken the screenshot
-        if (recordingIndicator) recordingIndicator.style.visibility = '';
-        if (res?.ok) flashCapture();
-      });
-    });
+  chrome.runtime.sendMessage({ type: 'CAPTURE_CLICK', ...payload }, (res) => {
+    if (recordingIndicator) recordingIndicator.style.visibility = '';
+    if (res?.ok) flashCapture();
   });
 }
 
